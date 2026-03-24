@@ -41,16 +41,32 @@ reviews as (
 	join order_reviews as r
 		on oi.order_id = r.order_id
 	group by oi.seller_id
+),
+-- Seller Overall Rankings (Actually answering the business question)
+seller_scores as (
+	select
+		r.seller_id,
+		r.total_revenue,
+		d.avg_delivery_days,
+		rev.avg_review_score,
+		rank() over (order by r.total_revenue desc) as revenue_rank,
+		rank() over (order by d.avg_delivery_days asc) as delivery_rank,
+		rank() over (order by rev.avg_review_score desc) as review_rank
+	from revenue as r
+	join delivery_time as d
+		on r.seller_id = d.seller_id
+	join reviews as rev
+		on r.seller_id = rev.seller_id
 )
 
 select
-	r.seller_id,
-	r.total_revenue,
-	d.avg_delivery_days,
-	rev.avg_review_score
-from revenue as r
-join delivery_time as d
-	on r.seller_id = d.seller_id
-join reviews as rev
-	on r.seller_id = rev.seller_id
-order by r.total_revenue desc;
+	seller_id,
+	total_revenue,
+	avg_delivery_days,
+	avg_review_score,
+	revenue_rank,
+	delivery_rank,
+	review_Rank,
+	revenue_rank + delivery_rank + review_rank as overall_score
+from seller_scores
+order by overall_score asc, total_revenue desc;
