@@ -33,9 +33,27 @@ repeat_orders AS (
 	JOIN first_orders as fo
 		ON co.customer_unique_id = fo.customer_unique_id
 	WHERE co.order_date > fo.first_order_date
+),
+
+--Create one row per customer and marks when order repeated
+retention_flags AS (
+    SELECT
+        fo.customer_unique_id,
+        fo.first_order_date,
+        CASE
+            WHEN MIN(ro.days_since_first_order) <= 30 THEN 'Retained 30 Days'
+            WHEN MIN(ro.days_since_first_order) <= 60 THEN 'Retained 60 Days'
+            WHEN MIN(ro.days_since_first_order) <= 90 THEN 'Retained 90 Days'
+            WHEN MIN(ro.days_since_first_order) > 90 THEN 'Retained After 90 Days'
+            ELSE 'Not Retained'
+        END AS retention_flag
+    FROM first_orders AS fo
+    LEFT JOIN repeat_orders AS ro
+        ON fo.customer_unique_id = ro.customer_unique_id
+    GROUP BY fo.customer_unique_id, fo.first_order_date
 )
 
 SELECT *
-FROM repeat_orders
+FROM retention_flags
 LIMIT 10;
 
