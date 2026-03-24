@@ -43,7 +43,14 @@ reviews as (
 	group by oi.seller_id
 )
 
-select * 
-from reviews
-order by avg_review_score desc;
-
+select
+	r.seller_id,
+	r.total_revenue,
+	d.avg_delivery_days,
+	rev.avg_review_score
+from revenue as r
+join delivery_time as d
+	on r.seller_id = d.seller_id
+join reviews as rev
+	on r.seller_id = rev.seller_id
+order by r.total_revenue desc;
