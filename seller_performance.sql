@@ -31,8 +31,19 @@ delivery_time as (
 		on oi.order_id = o.order_id
 	where o.order_delivered_customer_date is not null
 	group by oi.seller_id
+),
+-- Customer Satisfaction
+reviews as (
+	select 
+		oi.seller_id,
+		avg(r.review_score) as avg_review_score
+	from order_items as oi
+	join order_reviews as r
+		on oi.order_id = r.order_id
+	group by oi.seller_id
 )
+
 select * 
-from delivery_time
-order by avg_delivery_days asc;
+from reviews
+order by avg_review_score desc;
 
