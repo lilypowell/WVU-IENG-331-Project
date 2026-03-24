@@ -1,4 +1,4 @@
---Buisness Question #3: How likely are customers to place a second order within a given timeframe after their first purchase?
+--Business Question #3: How quickly do customers place a second order after their first purchase?
 --This query will identify first purchase dates and check whether a customer returns within 30, 60, or 90 days.
 
 --Identify customer order
@@ -53,7 +53,17 @@ retention_flags AS (
     GROUP BY fo.customer_unique_id, fo.first_order_date
 )
 
-SELECT *
+SELECT 
+retention_flag,
+    COUNT(*) AS customer_count,
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 2) AS percentage_of_customers
 FROM retention_flags
-LIMIT 10;
-
+GROUP BY retention_flag
+ORDER BY
+    CASE retention_flag
+        WHEN 'Retained 30 Days' THEN 1
+        WHEN 'Retained 60 Days' THEN 2
+        WHEN 'Retained 90 Days' THEN 3
+        WHEN 'Retained After 90 Days' THEN 4
+        WHEN 'Not Retained' THEN 5
+    END;
