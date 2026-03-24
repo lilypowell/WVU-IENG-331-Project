@@ -20,9 +20,22 @@ first_orders AS (
 		MIN(order_date) AS first_order_date
 	FROM customer_orders
 	GROUP BY customer_unique_id
+),
+
+--Add repeat orders
+repeat_orders AS (
+	SELECT 
+		co.customer_unique_id,
+		fo.first_order_date,
+		co.order_date,
+		DATE_DIFF('day', fo.first_order_date, co.order_date) AS days_since_first_order
+	FROM customer_orders as co
+	JOIN first_orders as fo
+		ON co.customer_unique_id = fo.customer_unique_id
+	WHERE co.order_date > fo.first_order_date
 )
 
 SELECT *
-FROM first_orders
+FROM repeat_orders
 LIMIT 10;
 
