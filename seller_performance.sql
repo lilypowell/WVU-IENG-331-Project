@@ -14,7 +14,25 @@ with revenue as (
 		sum(price) as total_revenue
 	from order_items
 	group by seller_id
+),
+-- Delivery Time CTE
+delivery_time as (
+	select
+		oi.seller_id,
+		avg(
+		date_diff(
+			'day',
+			o.order_purchase_timestamp,
+			o.order_delivered_customer_date
+		) 
+	) as avg_delivery_days
+	from order_items as oi
+	join orders as o
+		on oi.order_id = o.order_id
+	where o.order_delivered_customer_date is not null
+	group by oi.seller_id
 )
-select *
-from revenue
-order by total_revenue desc;
+select * 
+from delivery_time
+order by avg_delivery_days asc;
+
